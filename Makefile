@@ -23,7 +23,7 @@ endif
 SRCS := src/coord.c src/engine.c src/event.c src/ez_loop.c src/grid.c src/log.c src/utils.c
 OBJS := $(patsubst src/%.c,build/tmp/%.o,$(SRCS))
 
-TESTS := build/test_conway
+TESTS := build/test_conway build/test_pong
 
 all: $(LIB_GRID_ENGINE)
 
