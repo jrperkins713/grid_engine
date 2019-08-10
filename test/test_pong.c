@@ -26,7 +26,7 @@
 const uint32_t RESET_TIME_MS = 3000;
 
 // Anything at or above VALUE_ON is considered an obstacle
-const uint8_t VALUE_ON = 250;
+const uint8_t VALUE_ON = 150;
 const uint8_t VALUE_OFF = 0;
 
 // These are used to fade the grid each loop
@@ -435,16 +435,29 @@ void process_grid(ge_grid_t* restrict grid, user_data_t* restrict user_data)
   draw_score(grid, (ge_coord_t){width * 6 / 8 - 8, height / 2 - 4}, user_data->player2_score);
 }
 
+void process_one_paddle(ge_grid_t* restrict grid, ge_coord_t* paddle_coord, size_t paddle_size,
+                        int paddle_vel)
+{
+  // Get width of the grid
+  const size_t height = ge_grid_get_height(grid);
+  // Get the actual paddle size and the new coord
+  const size_t odd_paddle_size = (paddle_size % 2 != 0 ? paddle_size : paddle_size - 1);
+  const size_t half_paddle_size = (odd_paddle_size - 1) / 2;
+  const ge_coord_t new_coord = ge_coord_add(*paddle_coord, (ge_coord_t){0, paddle_vel});
+  // Check the boundries before applying the move
+  if (new_coord.y - half_paddle_size + 1 > 0 && new_coord.y + half_paddle_size < height) {
+    *paddle_coord = new_coord;
+  }
+  // Draw the paddle to the screen
+  draw_paddle(grid, *paddle_coord, paddle_size);
+}
+
 void process_paddles(ge_grid_t* restrict grid, user_data_t* restrict user_data)
 {
-  // Update paddle positions
-  user_data->paddle1_coord =
-      ge_coord_add(user_data->paddle1_coord, (ge_coord_t){0, user_data->paddle1_vel});
-  user_data->paddle2_coord =
-      ge_coord_add(user_data->paddle2_coord, (ge_coord_t){0, user_data->paddle2_vel});
-  // Draw paddles and bumpers to the screen
-  draw_paddle(grid, user_data->paddle1_coord, user_data->paddle1_size);
-  draw_paddle(grid, user_data->paddle2_coord, user_data->paddle2_size);
+  process_one_paddle(grid, &user_data->paddle1_coord, user_data->paddle1_size,
+                     user_data->paddle1_vel);
+  process_one_paddle(grid, &user_data->paddle2_coord, user_data->paddle2_size,
+                     user_data->paddle2_vel);
 }
 
 void process_ball(ge_grid_t* restrict grid, user_data_t* restrict user_data)
